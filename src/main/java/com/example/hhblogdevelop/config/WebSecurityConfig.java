@@ -26,6 +26,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.example.hhblogdevelop.exception.ErrorCode.INVALID_AUTH_TOKEN;
+import static com.example.hhblogdevelop.exception.ErrorCode.USER_NOT_FOUND;
+import static com.example.hhblogdevelop.exception.ErrorResponse.toResponseEntity;
+
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity // 스프링 Security 지원을 가능하게 함

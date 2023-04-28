@@ -1,7 +1,8 @@
 package com.example.hhblogdevelop.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.example.hhblogdevelop.dto.PostRequestDto;
+import com.example.hhblogdevelop.exception.CustomException;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -9,6 +10,8 @@ import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.List;
+
+import static com.example.hhblogdevelop.exception.ErrorCode.*;
 
 @Getter
 @Entity
