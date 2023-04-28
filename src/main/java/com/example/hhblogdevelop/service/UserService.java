@@ -1,21 +1,24 @@
 package com.example.hhblogdevelop.service;
 
 
+import com.example.hhblogdevelop.dto.GlobalResponseDto;
 import com.example.hhblogdevelop.dto.LoginRequestDto;
 import com.example.hhblogdevelop.dto.SignupRequestDto;
-import com.example.hhblogdevelop.dto.UserResponseDto;
+import com.example.hhblogdevelop.dto.TokenDto;
+import com.example.hhblogdevelop.entity.RefreshToken;
 import com.example.hhblogdevelop.entity.RoleType;
 import com.example.hhblogdevelop.entity.Users;
 import com.example.hhblogdevelop.exception.CustomException;
 import com.example.hhblogdevelop.jwt.JwtUtil;
+import com.example.hhblogdevelop.repository.RefreshTokenRepository;
 import com.example.hhblogdevelop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.Optional;
 
 import static com.example.hhblogdevelop.exception.ErrorCode.*;
@@ -26,13 +29,16 @@ public class UserService {
 
     // UserRepository 연결
     private final UserRepository userRepository;
+
     // JwtUtil 연결
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
+    // 회원가입
     @Transactional
-    public UserResponseDto<Users> signup(SignupRequestDto signupRequestDto) {
+    public GlobalResponseDto signup(SignupRequestDto signupRequestDto) {
         String username = signupRequestDto.getUsername();
         String password = passwordEncoder.encode(signupRequestDto.getPassword());
 
@@ -53,11 +59,11 @@ public class UserService {
 
         Users users = new Users(username, password, role);
         userRepository.save(users);
-        return UserResponseDto.setSuccess("회원가입 성공!");
+        return new GlobalResponseDto("회원가입 완료", HttpStatus.OK.value());
     }
 
     @Transactional
-    public UserResponseDto<Users> login(LoginRequestDto loginRequestDto, HttpServletResponse httpServletResponse) {
+    public GlobalResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse httpServletResponse) {
         String username = loginRequestDto.getUsername();
         String password = loginRequestDto.getPassword();
 
@@ -67,12 +73,34 @@ public class UserService {
         );
 
         // 비밀번호 확인
-        if(!passwordEncoder.matches(password, user.getPassword())){
-            throw  new CustomException(INVALID_USER_PASSWORD);
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new CustomException(INVALID_USER_PASSWORD);
+        }
+        // 아이디 정보로 Token생성
+        TokenDto tokenDto = jwtUtil.createAllToken(loginRequestDto.getUsername());
+
+        // Refresh토큰 있는지 확인
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(loginRequestDto.getUsername());
+
+        // 있다면 새토큰 발급후 업데이트
+        // 없다면 새로 만들고 디비 저장
+        if (refreshToken.isPresent()) {
+            refreshTokenRepository.save(refreshToken.get().updateToken(tokenDto.getRefreshToken()));
+        } else {
+            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), loginRequestDto.getUsername());
+            refreshTokenRepository.save(newToken);
         }
 
-        httpServletResponse.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername(), user.getRole()));
-        return UserResponseDto.setSuccess("로그인 성공!");
+        // response 헤더에 Access Token / Refresh Token 넣음
+        setHeader(httpServletResponse, tokenDto);
+
+        return new GlobalResponseDto("정상적으로 로그인하였습니다.", HttpStatus.OK.value());
+
+    }
+
+    private void setHeader(HttpServletResponse response, TokenDto tokenDto) {
+        response.addHeader(JwtUtil.ACCESS_TOKEN, tokenDto.getAccessToken());
+        response.addHeader(JwtUtil.REFRESH_TOKEN, tokenDto.getRefreshToken());
     }
 
 }
