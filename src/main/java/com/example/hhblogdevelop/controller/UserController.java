@@ -1,9 +1,8 @@
 package com.example.hhblogdevelop.controller;
 
+import com.example.hhblogdevelop.dto.GlobalResponseDto;
 import com.example.hhblogdevelop.dto.LoginRequestDto;
 import com.example.hhblogdevelop.dto.SignupRequestDto;
-import com.example.hhblogdevelop.dto.UserResponseDto;
-import com.example.hhblogdevelop.entity.Users;
 import com.example.hhblogdevelop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,13 +23,13 @@ public class UserController {
 
     // 회원가입
     @PostMapping("/signup")
-    public UserResponseDto<Users> signup(@Valid @RequestBody SignupRequestDto signupRequestDto) {
+    public GlobalResponseDto signup(@Valid @RequestBody SignupRequestDto signupRequestDto) {
         return userService.signup(signupRequestDto);
     }
 
     // 로그인
     @PostMapping("/login")
-    public UserResponseDto<Users> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse httpServletResponse) {
+    public GlobalResponseDto login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse httpServletResponse) {
         return userService.login(loginRequestDto, httpServletResponse);
     }
 

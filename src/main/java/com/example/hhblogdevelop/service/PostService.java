@@ -3,25 +3,21 @@ package com.example.hhblogdevelop.service;
 
 import com.example.hhblogdevelop.dto.PostRequestDto;
 import com.example.hhblogdevelop.dto.PostResponseDto;
-import com.example.hhblogdevelop.dto.UserResponseDto;
+import com.example.hhblogdevelop.dto.GlobalResponseDto;
 import com.example.hhblogdevelop.entity.Post;
 import com.example.hhblogdevelop.entity.PostLike;
 import com.example.hhblogdevelop.entity.Users;
 import com.example.hhblogdevelop.exception.CustomException;
-import com.example.hhblogdevelop.exception.ErrorCode;
-import com.example.hhblogdevelop.jwt.JwtUtil;
-import com.example.hhblogdevelop.repository.CommentRepository;
 import com.example.hhblogdevelop.repository.PostLikeRepository;
 import com.example.hhblogdevelop.repository.PostRepository;
 import com.example.hhblogdevelop.repository.UserRepository;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,14 +74,14 @@ public class PostService {
 
     // 게시물 삭제
     @Transactional
-    public UserResponseDto<Post> deletePost(Long id,  Users user) {
+    public GlobalResponseDto deletePost(Long id, Users user) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new CustomException(POST_NOT_FOUND)
         );
 
         if (post.getUsers().getUsername().equals(user.getUsername()) || user.getRole().equals(user.getRole().ADMIN)) {
             postRepository.delete(post);
-            return UserResponseDto.setSuccess("게시글 삭제 성공");
+            return new GlobalResponseDto("게시물이 삭제되었습니다.", HttpStatus.OK.value());
         } else {
             throw new CustomException(INVALID_USER);
         }
@@ -94,7 +90,7 @@ public class PostService {
 
     // 좋아요
     @Transactional
-    public UserResponseDto<Post> updateLike(Long id) {
+    public GlobalResponseDto updateLike(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new CustomException(POST_NOT_FOUND)
         );
@@ -107,12 +103,12 @@ public class PostService {
         if (postLikeRepository.findByPostAndUser(post, user) == null) {
             postLikeRepository.save(new PostLike(post, user));
             post.updateLike(true);
-            return UserResponseDto.setSuccess("좋아요 성공");
+            return new GlobalResponseDto("게시물 좋아요", HttpStatus.OK.value());
         } else {
             PostLike postLike = postLikeRepository.findByPostAndUser(post, user);
             postLikeRepository.delete(postLike);
             post.updateLike(false);
-            return UserResponseDto.setSuccess("좋아요 취소");
+            return new GlobalResponseDto("게시물 싫어요", HttpStatus.OK.value());
         }
 
     }
