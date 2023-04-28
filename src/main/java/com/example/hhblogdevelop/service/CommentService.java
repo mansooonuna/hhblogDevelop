@@ -27,7 +27,6 @@ import static com.example.hhblogdevelop.exception.ErrorCode.*;
 @RequiredArgsConstructor
 public class CommentService {
 
-    private final JwtUtil jwtUtil;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
@@ -35,24 +34,19 @@ public class CommentService {
 
     // 댓글 등록
     @Transactional
-    public UserResponseDto<Comment> addComment(CommentRequestDto commentRequestDto, HttpServletRequest httpServletRequest) {
-        Users user = checkJwtToken(httpServletRequest);
-
+    public UserResponseDto<Comment> addComment(CommentRequestDto commentRequestDto, Users user) {
         Post post = postRepository.findById(commentRequestDto.getPostId()).orElseThrow(
                 () -> new CustomException(POST_NOT_FOUND)
         );
 
-
         Comment comment = new Comment(user, commentRequestDto, post);
-        commentRepository.save(comment);
+        commentRepository.saveAndFlush(comment);
         return UserResponseDto.setSuccess("댓글이 등록되었습니다.");
     }
 
     // 댓글 수정
     @Transactional
-    public UserResponseDto<Comment> updateComment(Long id, CommentRequestDto commentRequestDto, HttpServletRequest httpServletRequest) {
-        Users user = checkJwtToken(httpServletRequest);
-
+    public UserResponseDto<Comment> updateComment(Long id, CommentRequestDto commentRequestDto, Users user) {
         Comment comment = commentRepository.findById(id).orElseThrow(
                 () -> new CustomException(COMMENT_NOT_FOUND)
         );
@@ -68,9 +62,7 @@ public class CommentService {
 
     // 댓글 삭제
     @Transactional
-    public UserResponseDto<Comment> deleteComment(Long id, HttpServletRequest httpServletRequest) {
-        Users user = checkJwtToken(httpServletRequest);
-
+    public UserResponseDto<Comment> deleteComment(Long id, Users user) {
         Comment comment = commentRepository.findById(id).orElseThrow(
                 () -> new CustomException(COMMENT_NOT_FOUND)
         );
@@ -108,29 +100,4 @@ public class CommentService {
         }
     }
 
-
-    // 토큰 체크
-    public Users checkJwtToken(HttpServletRequest request) {
-        // Request에서 Token 가져오기
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        // 토큰이 있는 경우에만 게시글 접근 가능
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                // 토큰에서 사용자 정보 가져오기
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new CustomException(INVALID_TOKEN);
-            }
-
-            // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
-            Users user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new CustomException(USER_NOT_FOUND)
-            );
-            return user;
-
-        }
-        return null;
-    }
 }
