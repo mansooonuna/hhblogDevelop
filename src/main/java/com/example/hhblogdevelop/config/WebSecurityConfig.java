@@ -26,13 +26,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.example.hhblogdevelop.exception.ErrorCode.INVALID_AUTH_TOKEN;
+import static com.example.hhblogdevelop.exception.ErrorCode.USER_NOT_FOUND;
+import static com.example.hhblogdevelop.exception.ErrorResponse.toResponseEntity;
+
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity // 스프링 Security 지원을 가능하게 함
 @EnableGlobalMethodSecurity(securedEnabled = true) // @Secured 어노테이션 활성화
 public class WebSecurityConfig {
 
-    private final JwtUtil jwtUtil;
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,9 +46,8 @@ public class WebSecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        // h2-console 사용 및 resources 접근 허용 설정
+        // resources 접근 허용 설정
         return (web) -> web.ignoring()
-                .requestMatchers(PathRequest.toH2Console())
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
@@ -59,12 +62,10 @@ public class WebSecurityConfig {
         http.authorizeRequests()
                 // login 없이 허용하는 페이지
                 .antMatchers("/api/posts/**").permitAll()
-                .antMatchers("/api/user/signup").permitAll()
-                .antMatchers("/api/user/login").permitAll()
+                .antMatchers("/api/user/**").permitAll()
                 // 어떤 요청이든 '인증'
-                .anyRequest().authenticated()
-                // JWT 인증/인가를 사용하기 위한 설정
-                .and().addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .anyRequest().authenticated();
+
 
         http.exceptionHandling()
                 .authenticationEntryPoint(new AuthenticationEntryPoint() {
@@ -83,6 +84,9 @@ public class WebSecurityConfig {
                         toResponseEntity(INVALID_AUTH_TOKEN);
                     }
                 });
+
+        // JWT 인증/인가를 사용하기 위한 설정
+        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.httpBasic().and();
 
