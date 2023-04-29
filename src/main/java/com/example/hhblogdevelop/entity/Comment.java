@@ -1,8 +1,8 @@
 package com.example.hhblogdevelop.entity;
 
+import com.example.hhblogdevelop.dto.CommentRequestDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.example.hhblogdevelop.dto.CommentRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -37,6 +37,7 @@ public class Comment extends Timestamped {
     @Column(name = "comment_like")
     @ColumnDefault("0")
     private int like;
+
 
     public Comment(Users user, CommentRequestDto commentRequestDto, Post post) {
         this.post = post;
