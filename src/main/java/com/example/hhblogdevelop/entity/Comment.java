@@ -18,6 +18,7 @@ public class Comment extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "comment_id")
     private Long id;
 
     @ManyToOne
@@ -33,10 +34,10 @@ public class Comment extends Timestamped {
     @JsonManagedReference
     private Users users;
 
-
     @Column(name = "comment_like")
     @ColumnDefault("0")
-    private Integer like;
+    private int like;
+
     public Comment(Users user, CommentRequestDto commentRequestDto, Post post) {
         this.post = post;
         this.users = user;
