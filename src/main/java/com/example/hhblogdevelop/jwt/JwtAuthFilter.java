@@ -1,12 +1,15 @@
 package com.example.hhblogdevelop.jwt;
 
-import com.example.hhblogdevelop.dto.GlobalResponseDto;
+import com.example.hhblogdevelop.dto.SecurityExceptionDto;
+import com.example.hhblogdevelop.entity.Users;
+import com.example.hhblogdevelop.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -16,10 +19,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     // HTTP 요청이 오면 WAS(tomcat)가 HttpServletRequest, HttpServletResponse 객체를 만들어 줍니다.
@@ -28,57 +33,54 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // WebSecurityConfig 에서 보았던 UsernamePasswordAuthenticationFilter 보다 먼저 동작을 하게 됩니다.
 
-        // Access / Refresh 헤더에서 토큰을 가져옴.
-        String accessToken = jwtUtil.getHeaderToken(request, "Access");
-        String refreshToken = jwtUtil.getHeaderToken(request, "Refresh");
+        // JWT 토큰을 해석하여 추출
+        String access_token = jwtUtil.resolveToken(request, JwtUtil.ACCESS_KEY);
+        String refresh_token = jwtUtil.resolveToken(request, JwtUtil.REFRESH_KEY);
 
-        if (accessToken != null) {
-            // 어세스 토큰값이 유효하다면 setAuthentication를 통해
-            // security context에 인증 정보저장
-            if (jwtUtil.tokenValidation(accessToken)) {
-                setAuthentication(jwtUtil.getUsername(accessToken));
-            }
-            // 어세스 토큰이 만료된 상황 && 리프레시 토큰 또한 존재하는 상황
-            else if (refreshToken != null) {
-                // 리프레시 토큰 검증 && 리프레시 토큰 DB에서  토큰 존재유무 확인
-                boolean isRefreshToken = jwtUtil.refreshTokenValidation(refreshToken);
-                // 리프레시 토큰이 유효하고 리프레시 토큰이 DB와 비교했을때 똑같다면
-                if (isRefreshToken) {
-                    // 리프레시 토큰으로 아이디 정보 가져오기
-                    String loginId = jwtUtil.getUsername(refreshToken);
-                    // 새로운 어세스 토큰 발급
-                    String newAccessToken = jwtUtil.createToken(loginId, "Access");
-                    // 헤더에 어세스 토큰 추가
-                    jwtUtil.setHeaderAccessToken(response, newAccessToken);
-                    // Security context에 인증 정보 넣기
-                    setAuthentication(jwtUtil.getUsername(newAccessToken));
-                }
-                // 리프레시 토큰이 만료 || 리프레시 토큰이 DB와 비교했을때 똑같지 않다면
-                else {
-                    jwtExceptionHandler(response, "RefreshToken Expired", HttpStatus.BAD_REQUEST);
-                    return;
-                }
+        // 토큰이 존재하면 유효성 검사를 수행하고, 유효하지 않은 경우 예외 처리
+        if (access_token != null) {
+            if (jwtUtil.validateToken(access_token)) {
+                setAuthentication(jwtUtil.getUserInfoFromToken(access_token));
+            } else if (refresh_token != null && jwtUtil.refreshTokenValid(refresh_token)) {
+                //Refresh토큰으로 유저명 가져오기
+                String username = jwtUtil.getUserInfoFromToken(refresh_token);
+                //유저명으로 유저 정보 가져오기
+                Users user = userRepository.findByUsername(username).get();
+                //새로운 ACCESS TOKEN 발급
+                String newAccessToken = jwtUtil.createToken(username, user.getRole(), "Access");
+                //Header에 ACCESS TOKEN 추가
+                jwtUtil.setHeaderAccessToken(response, newAccessToken);
+                setAuthentication(username);
+            } else if (refresh_token == null) {
+                jwtExceptionHandler(response, "AccessToken Expired.", HttpStatus.BAD_REQUEST.value());
+                return;
+            } else {
+                jwtExceptionHandler(response, "RefreshToken Expired.", HttpStatus.BAD_REQUEST.value());
+                return;
             }
         }
 
+        // 다음 필터로 요청과 응답을 전달하여 필터 체인 계속 실행
         filterChain.doFilter(request, response);
     }
 
-    // SecurityContext 에 Authentication 객체를 저장합니다.
-    public void setAuthentication(String email) {
-        Authentication authentication = jwtUtil.createAuthentication(email);
-        // security가 만들어주는 securityContextHolder 그 안에 authentication을 넣어줍니다.
-        // security가 securitycontextholder에서 인증 객체를 확인하는데
-        // jwtAuthfilter에서 authentication을 넣어주면 UsernamePasswordAuthenticationFilter 내부에서 인증이 된 것을 확인하고 추가적인 작업을 진행하지 않습니다.
+    // 인증 객체를 생성하여 SecurityContext에 설정
+    public void setAuthentication(String username) {
+        Authentication authentication = jwtUtil.createAuthentication(username);
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        // security가 만드는 securityContextHolder 안에 authentication을 넣음.
+        // security가 sicuritycontxxtholder에서 인증 객체를 확인.
+        // JwtAuthFilter에서 authentication을 넣어주면 UsernamePasswordAuthenticationFilter 내부에서 인증이 된 것을 확인하고 추가적인 작업을 진행하지 않음.
     }
 
-    // Jwt 예외처리
-    public void jwtExceptionHandler(HttpServletResponse response, String msg, HttpStatus status) {
-        response.setStatus(status.value());
+    // JWT 예외 처리를 위한 응답 설정
+    public void jwtExceptionHandler(HttpServletResponse response, String msg, int statusCode) {
+        response.setStatus(statusCode);
         response.setContentType("application/json");
         try {
-            String json = new ObjectMapper().writeValueAsString(new GlobalResponseDto(msg, status.value()));
+            // 예외 정보를 JSON 형태로 변환하여 응답에 작성
+            String json = new ObjectMapper().writeValueAsString(new SecurityExceptionDto(statusCode, msg));
             response.getWriter().write(json);
         } catch (Exception e) {
             log.error(e.getMessage());

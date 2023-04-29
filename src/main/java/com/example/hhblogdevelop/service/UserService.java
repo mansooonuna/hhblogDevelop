@@ -62,8 +62,9 @@ public class UserService {
         return new GlobalResponseDto("회원가입 완료", HttpStatus.OK.value());
     }
 
+    //로그인
     @Transactional
-    public GlobalResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse httpServletResponse) {
+    public GlobalResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
         String username = loginRequestDto.getUsername();
         String password = loginRequestDto.getPassword();
 
@@ -71,36 +72,31 @@ public class UserService {
         Users user = userRepository.findByUsername(username).orElseThrow(
                 () -> new CustomException(USER_NOT_FOUND)
         );
-
         // 비밀번호 확인
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new CustomException(INVALID_USER_PASSWORD);
+        if(!passwordEncoder.matches(password, user.getPassword())){
+            return new GlobalResponseDto("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST.value());
         }
-        // 아이디 정보로 Token생성
-        TokenDto tokenDto = jwtUtil.createAllToken(loginRequestDto.getUsername());
 
-        // Refresh토큰 있는지 확인
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(loginRequestDto.getUsername());
+        //아이디 정보로 토큰 생성
+        TokenDto tokenDto = jwtUtil.createAllToken(username, user.getRole());
 
-        // 있다면 새토큰 발급후 업데이트
-        // 없다면 새로 만들고 디비 저장
-        if (refreshToken.isPresent()) {
+        //Refresh토큰 있는지 확인
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(username);
+
+        if(refreshToken.isPresent()){
             refreshTokenRepository.save(refreshToken.get().updateToken(tokenDto.getRefreshToken()));
         } else {
-            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), loginRequestDto.getUsername());
+            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), username);
             refreshTokenRepository.save(newToken);
         }
-
-        // response 헤더에 Access Token / Refresh Token 넣음
-        setHeader(httpServletResponse, tokenDto);
-
-        return new GlobalResponseDto("정상적으로 로그인하였습니다.", HttpStatus.OK.value());
-
+        //response 헤더에 AccessToken / RefreshToken
+        setHeader(response, tokenDto);
+        return new GlobalResponseDto("정상적으로 로그인 되었습니다.", HttpStatus.OK.value());
     }
 
     private void setHeader(HttpServletResponse response, TokenDto tokenDto) {
-        response.addHeader(JwtUtil.ACCESS_TOKEN, tokenDto.getAccessToken());
-        response.addHeader(JwtUtil.REFRESH_TOKEN, tokenDto.getRefreshToken());
+        response.addHeader(JwtUtil.ACCESS_KEY, tokenDto.getAccessToken());
+        response.addHeader(JwtUtil.REFRESH_KEY, tokenDto.getRefreshToken());
     }
 
 }
