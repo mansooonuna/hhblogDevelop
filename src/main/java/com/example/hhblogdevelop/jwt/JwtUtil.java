@@ -108,10 +108,6 @@ public class JwtUtil {
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
-    // header 토큰을 가져오는 기능
-    public String getHeaderToken(HttpServletRequest request, String type) {
-        return type.equals("Access") ? request.getHeader(ACCESS_KEY) : request.getHeader(REFRESH_KEY);
-    }
 
     // 토큰에서 사용자 정보 가져오기
     public String getUserInfoFromToken(String token) {
