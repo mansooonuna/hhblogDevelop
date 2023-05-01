@@ -4,10 +4,12 @@ import com.example.hhblogdevelop.dto.CommentRequestDto;
 import com.example.hhblogdevelop.dto.GlobalResponseDto;
 import com.example.hhblogdevelop.security.UserDetailsImpl;
 import com.example.hhblogdevelop.service.CommentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Comment Controller", description = "댓글 관련 api")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor

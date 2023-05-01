@@ -32,7 +32,7 @@ public class Comment extends Timestamped {
     @ManyToOne
     @JoinColumn(name = "user_name", nullable = false)
     @JsonManagedReference
-    private Users users;
+    private Users user;
 
     @Column(name = "comment_like")
     @ColumnDefault("0")
@@ -41,7 +41,7 @@ public class Comment extends Timestamped {
 
     public Comment(Users user, CommentRequestDto commentRequestDto, Post post) {
         this.post = post;
-        this.users = user;
+        this.user = user;
         this.content = commentRequestDto.getContent();
     }
 

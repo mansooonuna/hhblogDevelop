@@ -2,10 +2,7 @@ package com.example.hhblogdevelop.service;
 
 import com.example.hhblogdevelop.dto.CommentRequestDto;
 import com.example.hhblogdevelop.dto.GlobalResponseDto;
-import com.example.hhblogdevelop.entity.Comment;
-import com.example.hhblogdevelop.entity.CommentLike;
-import com.example.hhblogdevelop.entity.Post;
-import com.example.hhblogdevelop.entity.Users;
+import com.example.hhblogdevelop.entity.*;
 import com.example.hhblogdevelop.exception.CustomException;
 import com.example.hhblogdevelop.repository.CommentLikeRepository;
 import com.example.hhblogdevelop.repository.CommentRepository;
@@ -48,7 +45,7 @@ public class CommentService {
                 () -> new CustomException(COMMENT_NOT_FOUND)
         );
 
-        if (comment.getUsers().getUsername().equals(user.getUsername()) || user.getRole().equals(user.getRole().ADMIN)) {
+        if (comment.getUser().getUsername().equals(user.getUsername()) || user.getRole().equals(UserRoleEnum.ADMIN)) {
             comment.update(commentRequestDto);
             return new GlobalResponseDto("댓글이 수정되었습니다.", HttpStatus.OK.value());
         } else {
@@ -64,7 +61,7 @@ public class CommentService {
                 () -> new CustomException(COMMENT_NOT_FOUND)
         );
 
-        if (comment.getUsers().getUsername().equals(user.getUsername()) || user.getRole().equals(user.getRole().ADMIN)) {
+        if (comment.getUser().getUsername().equals(user.getUsername()) || user.getRole().equals(UserRoleEnum.ADMIN)) {
             commentRepository.delete(comment);
             return new GlobalResponseDto("댓글이 삭제되었습니다.", HttpStatus.OK.value());
         } else {

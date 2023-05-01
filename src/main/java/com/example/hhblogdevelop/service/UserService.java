@@ -2,11 +2,11 @@ package com.example.hhblogdevelop.service;
 
 
 import com.example.hhblogdevelop.dto.GlobalResponseDto;
-import com.example.hhblogdevelop.dto.LoginRequestDto;
 import com.example.hhblogdevelop.dto.SignupRequestDto;
 import com.example.hhblogdevelop.dto.TokenDto;
+import com.example.hhblogdevelop.dto.UserRequestDto;
 import com.example.hhblogdevelop.entity.RefreshToken;
-import com.example.hhblogdevelop.entity.RoleType;
+import com.example.hhblogdevelop.entity.UserRoleEnum;
 import com.example.hhblogdevelop.entity.Users;
 import com.example.hhblogdevelop.exception.CustomException;
 import com.example.hhblogdevelop.jwt.JwtUtil;
@@ -27,13 +27,13 @@ import static com.example.hhblogdevelop.exception.ErrorCode.*;
 @RequiredArgsConstructor
 public class UserService {
 
-    // UserRepository 연결
-    private final UserRepository userRepository;
 
-    // JwtUtil 연결
+    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    // ADMIN_TOKEN
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
     // 회원가입
@@ -49,12 +49,12 @@ public class UserService {
         }
 
         // 관리자 확인
-        RoleType role = RoleType.USER;
+        UserRoleEnum role = UserRoleEnum.USER;
         if (signupRequestDto.isAdmin()) {
             if (!signupRequestDto.getAdminToken().equals(ADMIN_TOKEN)) {
                 throw new CustomException(INVALID_ADMIN_PASSWORD);
             }
-            role = RoleType.ADMIN;
+            role = UserRoleEnum.ADMIN;
         }
 
         Users users = new Users(username, password, role);
@@ -64,34 +64,50 @@ public class UserService {
 
     //로그인
     @Transactional
-    public GlobalResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
-        String username = loginRequestDto.getUsername();
-        String password = loginRequestDto.getPassword();
+    public GlobalResponseDto login(UserRequestDto userRequestDto, HttpServletResponse response) {
+        String username = userRequestDto.getUsername();
+        String password = userRequestDto.getPassword();
 
         // 사용자 확인
         Users user = userRepository.findByUsername(username).orElseThrow(
                 () -> new CustomException(USER_NOT_FOUND)
         );
         // 비밀번호 확인
-        if(!passwordEncoder.matches(password, user.getPassword())){
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             return new GlobalResponseDto("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST.value());
         }
 
         //아이디 정보로 토큰 생성
         TokenDto tokenDto = jwtUtil.createAllToken(username, user.getRole());
 
-        //Refresh토큰 있는지 확인
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(username);
+        //Refresh 토큰 있는지 확인
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUser(user);
 
-        if(refreshToken.isPresent()){
+        if (refreshToken.isPresent()) {
             refreshTokenRepository.save(refreshToken.get().updateToken(tokenDto.getRefreshToken()));
+            user.update(refreshToken.get());
         } else {
-            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), username);
+            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), user);
             refreshTokenRepository.save(newToken);
+            user.update(newToken);
         }
         //response 헤더에 AccessToken / RefreshToken
         setHeader(response, tokenDto);
         return new GlobalResponseDto("정상적으로 로그인 되었습니다.", HttpStatus.OK.value());
+    }
+
+    // 회원탈퇴
+    @Transactional
+    public GlobalResponseDto withdraw(UserRequestDto userRequestDto, Users user) {
+        Users findUser = userRepository.findByUsername(user.getUsername()).orElseThrow(
+                () -> new CustomException(USER_NOT_FOUND)
+        );
+        if (!passwordEncoder.matches(findUser.getPassword(), userRequestDto.getPassword())) {
+            userRepository.delete(findUser);
+            return new GlobalResponseDto("정상적으로 탈퇴 되었습니다. 감사합니다.", HttpStatus.OK.value());
+        } else {
+            throw new CustomException(INVALID_USER_PASSWORD);
+        }
     }
 
     private void setHeader(HttpServletResponse response, TokenDto tokenDto) {

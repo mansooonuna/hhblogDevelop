@@ -3,7 +3,7 @@ package com.example.hhblogdevelop.jwt;
 
 import com.example.hhblogdevelop.dto.TokenDto;
 import com.example.hhblogdevelop.entity.RefreshToken;
-import com.example.hhblogdevelop.entity.RoleType;
+import com.example.hhblogdevelop.entity.UserRoleEnum;
 import com.example.hhblogdevelop.repository.RefreshTokenRepository;
 import com.example.hhblogdevelop.security.UserDetailsServiceImpl;
 import io.jsonwebtoken.*;
@@ -56,11 +56,11 @@ public class JwtUtil {
     }
 
     // 토큰 생성
-    public TokenDto createAllToken(String username, RoleType role) {
+    public TokenDto createAllToken(String username, UserRoleEnum role) {
         return new TokenDto(createToken(username, role, "Access"), createToken(username, role, "Refresh"));
     }
 
-    public String createToken(String username, RoleType role, String token) {
+    public String createToken(String username, UserRoleEnum role, String token) {
         Date date = new Date();
         long tokenType = token.equals("Access") ? ACCESS_TIME : REFRESH_TIME;
 
@@ -97,7 +97,7 @@ public class JwtUtil {
     // db 보다는 redis를 사용하는 것이 더욱 좋다. (in-memory db기 때문에 조회속도가 빠르고 주기적으로 삭제하는 기능이 기본적으로 존재합니다.)
     public boolean refreshTokenValid(String token) {
         if (!validateToken(token)) return false;
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(getUserInfoFromToken(token));
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findUserByRefreshToken(token);
         return refreshToken.isPresent() && token.equals(refreshToken.get().getRefreshToken().substring(7));
     }
 
@@ -108,10 +108,6 @@ public class JwtUtil {
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
-    // header 토큰을 가져오는 기능
-    public String getHeaderToken(HttpServletRequest request, String type) {
-        return type.equals("Access") ? request.getHeader(ACCESS_KEY) : request.getHeader(REFRESH_KEY);
-    }
 
     // 토큰에서 사용자 정보 가져오기
     public String getUserInfoFromToken(String token) {
