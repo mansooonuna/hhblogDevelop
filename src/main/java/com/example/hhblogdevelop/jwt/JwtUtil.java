@@ -3,7 +3,7 @@ package com.example.hhblogdevelop.jwt;
 
 import com.example.hhblogdevelop.dto.TokenDto;
 import com.example.hhblogdevelop.entity.RefreshToken;
-import com.example.hhblogdevelop.entity.RoleType;
+import com.example.hhblogdevelop.entity.UserRoleEnum;
 import com.example.hhblogdevelop.repository.RefreshTokenRepository;
 import com.example.hhblogdevelop.security.UserDetailsServiceImpl;
 import io.jsonwebtoken.*;
@@ -56,11 +56,11 @@ public class JwtUtil {
     }
 
     // 토큰 생성
-    public TokenDto createAllToken(String username, RoleType role) {
+    public TokenDto createAllToken(String username, UserRoleEnum role) {
         return new TokenDto(createToken(username, role, "Access"), createToken(username, role, "Refresh"));
     }
 
-    public String createToken(String username, RoleType role, String token) {
+    public String createToken(String username, UserRoleEnum role, String token) {
         Date date = new Date();
         long tokenType = token.equals("Access") ? ACCESS_TIME : REFRESH_TIME;
 

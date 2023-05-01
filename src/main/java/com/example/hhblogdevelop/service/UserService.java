@@ -6,7 +6,7 @@ import com.example.hhblogdevelop.dto.SignupRequestDto;
 import com.example.hhblogdevelop.dto.TokenDto;
 import com.example.hhblogdevelop.dto.UserRequestDto;
 import com.example.hhblogdevelop.entity.RefreshToken;
-import com.example.hhblogdevelop.entity.RoleType;
+import com.example.hhblogdevelop.entity.UserRoleEnum;
 import com.example.hhblogdevelop.entity.Users;
 import com.example.hhblogdevelop.exception.CustomException;
 import com.example.hhblogdevelop.jwt.JwtUtil;
@@ -27,13 +27,13 @@ import static com.example.hhblogdevelop.exception.ErrorCode.*;
 @RequiredArgsConstructor
 public class UserService {
 
-    // UserRepository 연결
-    private final UserRepository userRepository;
 
-    // JwtUtil 연결
+    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    // ADMIN_TOKEN
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
     // 회원가입
@@ -49,12 +49,12 @@ public class UserService {
         }
 
         // 관리자 확인
-        RoleType role = RoleType.USER;
+        UserRoleEnum role = UserRoleEnum.USER;
         if (signupRequestDto.isAdmin()) {
             if (!signupRequestDto.getAdminToken().equals(ADMIN_TOKEN)) {
                 throw new CustomException(INVALID_ADMIN_PASSWORD);
             }
-            role = RoleType.ADMIN;
+            role = UserRoleEnum.ADMIN;
         }
 
         Users users = new Users(username, password, role);
@@ -80,7 +80,7 @@ public class UserService {
         //아이디 정보로 토큰 생성
         TokenDto tokenDto = jwtUtil.createAllToken(username, user.getRole());
 
-        //Refresh토큰 있는지 확인
+        //Refresh 토큰 있는지 확인
         Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(username);
 
         if (refreshToken.isPresent()) {
@@ -112,5 +112,5 @@ public class UserService {
         response.addHeader(JwtUtil.ACCESS_KEY, tokenDto.getAccessToken());
         response.addHeader(JwtUtil.REFRESH_KEY, tokenDto.getRefreshToken());
     }
-    
+
 }

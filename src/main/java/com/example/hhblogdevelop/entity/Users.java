@@ -22,9 +22,9 @@ public class Users {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private RoleType role;
+    private UserRoleEnum role;
 
-    public Users(String username, String password, RoleType role) {
+    public Users(String username, String password, UserRoleEnum role) {
         this.username = username;
         this.password = password;
         this.role = role;

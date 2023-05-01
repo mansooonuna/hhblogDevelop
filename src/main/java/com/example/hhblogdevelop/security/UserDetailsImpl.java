@@ -1,6 +1,6 @@
 package com.example.hhblogdevelop.security;
 
-import com.example.hhblogdevelop.entity.RoleType;
+import com.example.hhblogdevelop.entity.UserRoleEnum;
 import com.example.hhblogdevelop.entity.Users;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,7 +25,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        RoleType role = user.getRole();
+        UserRoleEnum role = user.getRole();
         String authority = role.getAuthority();
 
         SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(authority);
