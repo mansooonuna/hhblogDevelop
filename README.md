@@ -4,5 +4,7 @@
 <ol>
 <li>mysql을 연동해보자</li>
 <li>refreshToken을 사용해보자</li>
+<li>페이징 처리를 해보자</li>
+<li>회원탈퇴 기능을 추가해보자</li>
 
 </ol>
