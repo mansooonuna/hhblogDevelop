@@ -5,6 +5,7 @@ import com.example.hhblogdevelop.dto.UserRequestDto;
 import com.example.hhblogdevelop.dto.SignupRequestDto;
 import com.example.hhblogdevelop.security.UserDetailsImpl;
 import com.example.hhblogdevelop.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+@Tag(name = "User Controller", description = "회원 관련 api")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
