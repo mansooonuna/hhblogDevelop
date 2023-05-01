@@ -1,12 +1,12 @@
 package com.example.hhblogdevelop.entity;
 
-public enum RoleType {
+public enum UserRoleEnum {
     USER(Authority.USER),  // 사용자 권한
     ADMIN(Authority.ADMIN);  // 관리자 권한
 
     private final String authority;
 
-    RoleType(String authority) {
+    UserRoleEnum(String authority) {
         this.authority = authority;
     }
 
