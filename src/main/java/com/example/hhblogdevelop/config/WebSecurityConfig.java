@@ -20,6 +20,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +38,19 @@ import static com.example.hhblogdevelop.exception.ErrorResponse.toResponseEntity
 public class WebSecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private static final String[] PERMIT_URL_ARRAY = {
+/* swagger v2 */
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+/* swagger v3 */
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -63,6 +77,8 @@ public class WebSecurityConfig {
                 // login 없이 허용하는 페이지
                 .antMatchers("/api/posts/**").permitAll()
                 .antMatchers("/api/user/**").permitAll()
+                .antMatchers(PERMIT_URL_ARRAY).permitAll()
+//                .antMatchers("api/post").hasRole("ADMIN")
                 // 어떤 요청이든 '인증'
                 .anyRequest().authenticated();
 
@@ -83,7 +99,8 @@ public class WebSecurityConfig {
                                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
                         toResponseEntity(INVALID_AUTH_TOKEN);
                     }
-                });
+                })
+        ;
 
         // JWT 인증/인가를 사용하기 위한 설정
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

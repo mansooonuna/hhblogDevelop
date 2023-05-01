@@ -5,12 +5,14 @@ import com.example.hhblogdevelop.dto.PostRequestDto;
 import com.example.hhblogdevelop.dto.PostResponseDto;
 import com.example.hhblogdevelop.security.UserDetailsImpl;
 import com.example.hhblogdevelop.service.PostService;
+import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Api(tags = {"Post Controller"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
