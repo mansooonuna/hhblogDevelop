@@ -1,5 +1,7 @@
 package com.example.hhblogdevelop.entity;
 
+import com.example.hhblogdevelop.dto.PostRequestDto;
+import com.example.hhblogdevelop.dto.UserRequestDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -9,6 +11,8 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Optional;
+
 @Data
 @Getter
 @Setter
@@ -53,4 +57,8 @@ public class Users {
         this.role = role;
     }
 
+
+    public void update(RefreshToken refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }

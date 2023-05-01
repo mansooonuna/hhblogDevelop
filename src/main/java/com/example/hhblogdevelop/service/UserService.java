@@ -81,13 +81,15 @@ public class UserService {
         TokenDto tokenDto = jwtUtil.createAllToken(username, user.getRole());
 
         //Refresh 토큰 있는지 확인
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(username);
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUser(user);
 
         if (refreshToken.isPresent()) {
             refreshTokenRepository.save(refreshToken.get().updateToken(tokenDto.getRefreshToken()));
+            user.update(refreshToken.get());
         } else {
-            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), username);
+            RefreshToken newToken = new RefreshToken(tokenDto.getRefreshToken(), user);
             refreshTokenRepository.save(newToken);
+            user.update(newToken);
         }
         //response 헤더에 AccessToken / RefreshToken
         setHeader(response, tokenDto);
@@ -100,7 +102,7 @@ public class UserService {
         Users findUser = userRepository.findByUsername(user.getUsername()).orElseThrow(
                 () -> new CustomException(USER_NOT_FOUND)
         );
-        if (findUser.getPassword().equals(userRequestDto.getPassword())) {
+        if (!passwordEncoder.matches(findUser.getPassword(), userRequestDto.getPassword())) {
             userRepository.delete(findUser);
             return new GlobalResponseDto("정상적으로 탈퇴 되었습니다. 감사합니다.", HttpStatus.OK.value());
         } else {

@@ -97,7 +97,7 @@ public class JwtUtil {
     // db 보다는 redis를 사용하는 것이 더욱 좋다. (in-memory db기 때문에 조회속도가 빠르고 주기적으로 삭제하는 기능이 기본적으로 존재합니다.)
     public boolean refreshTokenValid(String token) {
         if (!validateToken(token)) return false;
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUsername(getUserInfoFromToken(token));
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findUserByRefreshToken(token);
         return refreshToken.isPresent() && token.equals(refreshToken.get().getRefreshToken().substring(7));
     }
 
