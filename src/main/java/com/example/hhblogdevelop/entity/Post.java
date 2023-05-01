@@ -4,8 +4,7 @@ import com.example.hhblogdevelop.exception.CustomException;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import com.example.hhblogdevelop.dto.PostRequestDto;
-import com.example.hhblogdevelop.exception.CustomException;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -33,8 +32,9 @@ public class Post extends Timestamped {
     private String content;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JsonManagedReference
     @JoinColumn(name = "user_name", nullable = false)
-    private Users users;
+    private Users user;
 
     @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @OrderBy("id asc")
@@ -61,7 +61,7 @@ public class Post extends Timestamped {
 
         this.title = postRequestDto.getTitle();
         this.content = postRequestDto.getContent();
-        this.users = user;
+        this.user = user;
     }
 
     public void update(PostRequestDto postRequestDto) {

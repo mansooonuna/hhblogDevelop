@@ -13,13 +13,12 @@ import com.example.hhblogdevelop.repository.PostLikeRepository;
 import com.example.hhblogdevelop.repository.PostRepository;
 import com.example.hhblogdevelop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static com.example.hhblogdevelop.exception.ErrorCode.INVALID_USER;
 import static com.example.hhblogdevelop.exception.ErrorCode.POST_NOT_FOUND;
@@ -35,13 +34,13 @@ public class PostService {
 
     // 전체 게시물 목록 조회
     @Transactional(readOnly = true)
-    public Page<Post> getAllPosts(int page, int size, String sortBy, boolean isAsc) {
-        // 페이징 처리
-        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        return postRepository.findAll(pageable);
+    public List<PostResponseDto> getAllPosts(Pageable pageable) {
+        List<PostResponseDto> posts = postRepository.findAll(pageable).stream().map(PostResponseDto::new).toList();
+        // 페이지에 글이 없으면 예외처리
+        if (posts.isEmpty()) {
+            throw new CustomException(POST_NOT_FOUND);
+        }
+        return posts;
     }
 
     // 선택한 게시물 상세 조회
@@ -68,7 +67,7 @@ public class PostService {
                 () -> new CustomException(POST_NOT_FOUND)
         );
 
-        if (post.getUsers().getUsername().equals(user.getUsername()) || user.getRole().equals(UserRoleEnum.ADMIN)) {
+        if (post.getUser().getUsername().equals(user.getUsername()) || user.getRole().equals(UserRoleEnum.ADMIN)) {
             post.update(postRequestDto);
             return new PostResponseDto(post);
         } else {
@@ -83,7 +82,7 @@ public class PostService {
                 () -> new CustomException(POST_NOT_FOUND)
         );
 
-        if (post.getUsers().getUsername().equals(user.getUsername()) || user.getRole().equals(UserRoleEnum.ADMIN)) {
+        if (post.getUser().getUsername().equals(user.getUsername()) || user.getRole().equals(UserRoleEnum.ADMIN)) {
             postRepository.delete(post);
             return new GlobalResponseDto("게시물이 삭제되었습니다.", HttpStatus.OK.value());
         } else {

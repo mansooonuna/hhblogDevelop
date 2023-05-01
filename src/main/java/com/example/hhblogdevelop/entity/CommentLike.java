@@ -1,5 +1,6 @@
 package com.example.hhblogdevelop.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,10 +16,12 @@ public class CommentLike {
     private Long id;
 
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "user_name")
     private Users user;
 
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "comment_id")
     private Comment comment;
 

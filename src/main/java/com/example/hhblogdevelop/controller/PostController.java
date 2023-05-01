@@ -9,8 +9,13 @@ import com.example.hhblogdevelop.service.PostService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Post Controller", description = "게시물 관련 api")
 @RestController
@@ -23,14 +28,10 @@ public class PostController {
 
     // 게시물 목록 조회
     @GetMapping("/posts")
-    public Page<Post> getAllPosts(
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
-            @RequestParam("sortBy") String sortBy,
-            @RequestParam("isAsc") boolean isAsc
-    ) {
-        return postService.getAllPosts(page - 1, size, sortBy, isAsc);
+    public List<PostResponseDto> getAllPosts(@PageableDefault(page = 0, size = 3, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        return postService.getAllPosts(pageable);
     }
+
 
     // 게시물 상세 조회
     @GetMapping("/posts/{id}")
