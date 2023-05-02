@@ -32,12 +32,18 @@ public class PostController {
         return postService.getAllPosts(pageable);
     }
 
-
     // 게시물 상세 조회
     @GetMapping("/posts/{id}")
     public PostResponseDto getPost(@PathVariable Long id) {
         return postService.getPost(id);
     }
+
+    // 게시물 검색
+    @GetMapping("/posts/search")
+    public List<PostResponseDto> searchPost(@RequestParam(value = "keyword") String keyword) {
+        return postService.searchPost(keyword);
+    }
+
 
     // 게시물 등록
     @PostMapping("/post")
