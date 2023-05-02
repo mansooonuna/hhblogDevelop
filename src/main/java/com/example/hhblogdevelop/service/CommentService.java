@@ -83,7 +83,7 @@ public class CommentService {
         );
 
         if (commentLikeRepository.findByCommentIdAndUser(comment.getId(), user) == null) {
-            commentLikeRepository.save(new CommentLike(comment.getId(), user));
+            commentLikeRepository.save(new CommentLike(comment, user));
             comment.updateLike(true);
             return new GlobalResponseDto("댓글 좋아요", HttpStatus.OK.value());
         } else {

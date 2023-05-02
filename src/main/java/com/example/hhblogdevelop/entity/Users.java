@@ -1,19 +1,15 @@
 package com.example.hhblogdevelop.entity;
 
-import com.example.hhblogdevelop.dto.PostRequestDto;
-import com.example.hhblogdevelop.dto.UserRequestDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 
-@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -38,14 +34,6 @@ public class Users {
     @JsonBackReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Comment> commentList;
-
-    @JsonBackReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<PostLike> postLikeList;
-
-    @JsonBackReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<CommentLike> commentLikeList;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JsonIgnore

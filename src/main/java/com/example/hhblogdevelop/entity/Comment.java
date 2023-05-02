@@ -1,6 +1,7 @@
 package com.example.hhblogdevelop.entity;
 
 import com.example.hhblogdevelop.dto.CommentRequestDto;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Entity
