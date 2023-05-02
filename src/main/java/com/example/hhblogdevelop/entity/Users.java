@@ -2,18 +2,19 @@ package com.example.hhblogdevelop.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @Entity
+@DynamicInsert
 public class Users {
     @Id
     @Column(name = "user_name", nullable = false, unique = true)
@@ -35,8 +36,18 @@ public class Users {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Comment> commentList;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @JsonBackReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<PostLike> postLikeList;
+
+    @JsonBackReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<CommentLike> commentLikeList;
+
+
     @JsonIgnore
+    @JsonManagedReference
+    @OneToOne(cascade = CascadeType.REMOVE)
     private RefreshToken refreshToken;
 
     public Users(String username, String password, UserRoleEnum role) {
@@ -44,7 +55,6 @@ public class Users {
         this.password = password;
         this.role = role;
     }
-
 
     public void update(RefreshToken refreshToken) {
         this.refreshToken = refreshToken;

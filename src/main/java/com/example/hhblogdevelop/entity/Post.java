@@ -31,7 +31,7 @@ public class Post extends Timestamped {
     @Column(nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JsonManagedReference
     @JoinColumn(name = "user_name", nullable = false)
     private Users user;

@@ -1,7 +1,11 @@
 package com.example.hhblogdevelop.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -9,6 +13,7 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Entity
 @NoArgsConstructor
+@DynamicInsert
 public class RefreshToken {
 
     @Id
@@ -16,8 +21,10 @@ public class RefreshToken {
     private Long id;
     @NotNull
     private String refreshToken;
-    @NotNull
+
+    @JsonBackReference
     @OneToOne
+    @JoinColumn(name = "user_name")
     private Users user;
 
     public RefreshToken(String token, Users user) {

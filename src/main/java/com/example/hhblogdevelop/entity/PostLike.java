@@ -16,12 +16,12 @@ public class PostLike {
 
     @ManyToOne
     @JsonManagedReference
-    @JoinColumn(name = "user_name")
+    @JoinColumn(name = "user_name", nullable = false)
     private Users user;
 
     @ManyToOne
     @JsonManagedReference
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
     public PostLike(Post post, Users user) {
