@@ -36,14 +36,14 @@ public class Post extends Timestamped {
     @JoinColumn(name = "user_name", nullable = false)
     private Users user;
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     @OrderBy("id asc")
     @JsonBackReference
     private List<Comment> comments;
 
     @Column(name = "post_like")
     @ColumnDefault("0")
-    private int like;
+    private int post_like;
 
     public Post(PostRequestDto postRequestDto, Users user) {
         // 입력값 Validation
@@ -70,7 +70,7 @@ public class Post extends Timestamped {
     }
 
     public void updateLike(boolean likeOrDislike) {
-        this.like = likeOrDislike ? this.like + 1 : this.like - 1;
+        this.post_like = likeOrDislike ? this.post_like + 1 : this.post_like - 1;
     }
 
 }

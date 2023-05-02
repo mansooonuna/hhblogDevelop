@@ -28,6 +28,6 @@ public class PostResponseDto {
         this.createdAt = post.getCreatedAt();
         this.modifiedAt = post.getModifiedAt();
         this.comments = post.getComments();
-        this.like = post.getLike();
+        this.like = post.getPost_like();
     }
 }

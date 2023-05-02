@@ -82,12 +82,12 @@ public class CommentService {
                 () -> new CustomException(INVALID_USER)
         );
 
-        if (commentLikeRepository.findByCommentAndUser(comment, user) == null) {
-            commentLikeRepository.save(new CommentLike(comment, user));
+        if (commentLikeRepository.findByCommentIdAndUser(comment.getId(), user) == null) {
+            commentLikeRepository.save(new CommentLike(comment.getId(), user));
             comment.updateLike(true);
             return new GlobalResponseDto("댓글 좋아요", HttpStatus.OK.value());
         } else {
-            CommentLike commentLike = commentLikeRepository.findByCommentAndUser(comment, user);
+            CommentLike commentLike = commentLikeRepository.findByCommentIdAndUser(comment.getId(), user);
             commentLikeRepository.delete(commentLike);
             comment.updateLike(false);
             return new GlobalResponseDto("댓글 싫어요", HttpStatus.OK.value());

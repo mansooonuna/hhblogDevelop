@@ -20,14 +20,13 @@ public class CommentLike {
     @JoinColumn(name = "user_name")
     private Users user;
 
-    @ManyToOne
     @JsonManagedReference
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
+    @Column
+    private Long commentId;
 
 
-    public CommentLike(Comment comment, Users user) {
-        this.comment = comment;
+    public CommentLike(Long commentId, Users user) {
+        this.commentId = commentId;
         this.user = user;
     }
 }
