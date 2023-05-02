@@ -17,12 +17,12 @@ public class CommentLike {
 
     @ManyToOne
     @JsonManagedReference
-    @JoinColumn(name = "user_name")
+    @JoinColumn(name = "user_name", nullable = false)
     private Users user;
 
     @ManyToOne
     @JsonManagedReference
-    @JoinColumn(name = "comment_id")
+    @JoinColumn(name = "comment_id", nullable = false)
     private Comment comment;
 
 

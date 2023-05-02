@@ -33,8 +33,8 @@ public class UserController {
 
     // 회원 탈퇴
     @DeleteMapping("/withdraw")
-    public GlobalResponseDto withdraw(@RequestBody UserRequestDto userRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return userService.withdraw(userRequestDto, userDetails.getUser());
+    public GlobalResponseDto withdraw(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return userService.withdraw(userDetails.getUser());
     }
 
     // 로그인
