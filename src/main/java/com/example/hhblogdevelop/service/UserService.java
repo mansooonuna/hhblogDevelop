@@ -12,11 +12,13 @@ import com.example.hhblogdevelop.exception.CustomException;
 import com.example.hhblogdevelop.jwt.JwtUtil;
 import com.example.hhblogdevelop.repository.RefreshTokenRepository;
 import com.example.hhblogdevelop.repository.UserRepository;
+import com.example.hhblogdevelop.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
@@ -64,20 +66,19 @@ public class UserService {
 
     // 회원탈퇴
     @Transactional
-    public GlobalResponseDto withdraw(UserRequestDto userRequestDto, Users user) {
-        String username = userRequestDto.getUsername();
-        String password = userRequestDto.getPassword();
+    public GlobalResponseDto withdraw(Users user) {
+        String username = user.getUsername();
+        String password = user.getPassword();
         // 사용자 확인
         Users findUser = userRepository.findByUsername(username).orElseThrow(
                 () -> new CustomException(USER_NOT_FOUND)
         );
         // 비밀번호 확인
-        if (!passwordEncoder.matches(password, findUser.getPassword())) {
+        if (!password.equals(findUser.getPassword())) {
             return new GlobalResponseDto("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST.value());
-        } else {
-            userRepository.delete(findUser);
-            return new GlobalResponseDto("정상적으로 탈퇴 되었습니다. 감사합니다.", HttpStatus.OK.value());
         }
+        userRepository.deleteUsersByUsername(findUser.getUsername());
+        return new GlobalResponseDto("정상적으로 탈퇴 되었습니다. 감사합니다.", HttpStatus.OK.value());
     }
 
     //로그인
