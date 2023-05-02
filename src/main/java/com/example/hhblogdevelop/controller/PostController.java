@@ -28,7 +28,7 @@ public class PostController {
 
     // 게시물 목록 조회
     @GetMapping("/posts")
-    public List<PostResponseDto> getAllPosts(@PageableDefault(page = 0, size = 3, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    public List<PostResponseDto> getAllPosts(@PageableDefault(page = 1, size = 3, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         return postService.getAllPosts(pageable);
     }
 
