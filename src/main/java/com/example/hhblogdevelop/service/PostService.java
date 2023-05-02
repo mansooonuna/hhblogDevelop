@@ -52,6 +52,17 @@ public class PostService {
         return new PostResponseDto(post);
     }
 
+    // 키워드로 게시물 검색
+    @Transactional(readOnly = true)
+    public List<PostResponseDto> searchPost(String keyword) {
+        List<PostResponseDto> posts = postRepository.findAllSearch(keyword).stream().map(PostResponseDto::new).toList();
+
+        if (posts.isEmpty()){
+            throw new CustomException(POST_NOT_FOUND);
+        }
+        return posts;
+    }
+
     // 게시물 등록
     @Transactional
     public PostResponseDto createPost(PostRequestDto postRequestDto, Users user) {
@@ -114,5 +125,7 @@ public class PostService {
         }
 
     }
+
+
 }
 
