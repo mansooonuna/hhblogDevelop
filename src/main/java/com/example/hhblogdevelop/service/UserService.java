@@ -67,13 +67,13 @@ public class UserService {
     public GlobalResponseDto withdraw(UserRequestDto userRequestDto, Users user) {
         String username = userRequestDto.getUsername();
         String password = userRequestDto.getPassword();
-
-        Users findUser = userRepository.findByUsername(user.getUsername()).orElseThrow(
+        // 사용자 확인
+        Users findUser = userRepository.findByUsername(username).orElseThrow(
                 () -> new CustomException(USER_NOT_FOUND)
         );
-
+        // 비밀번호 확인
         if (!passwordEncoder.matches(password, findUser.getPassword())) {
-            throw new CustomException(INVALID_USER_PASSWORD);
+            return new GlobalResponseDto("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST.value());
         } else {
             userRepository.delete(findUser);
             return new GlobalResponseDto("정상적으로 탈퇴 되었습니다. 감사합니다.", HttpStatus.OK.value());
