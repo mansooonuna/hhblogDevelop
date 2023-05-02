@@ -8,8 +8,11 @@ import com.example.hhblogdevelop.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -28,16 +31,23 @@ public class UserController {
         return userService.signup(signupRequestDto);
     }
 
+    // 회원 탈퇴
+    @DeleteMapping("/withdraw")
+    public GlobalResponseDto withdraw(@RequestBody UserRequestDto userRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return userService.withdraw(userRequestDto, userDetails.getUser());
+    }
+
     // 로그인
     @PostMapping("/login")
     public GlobalResponseDto login(@RequestBody UserRequestDto userRequestDto, HttpServletResponse httpServletResponse) {
         return userService.login(userRequestDto, httpServletResponse);
     }
 
-    // 회원 탈퇴
-    @DeleteMapping("/withdraw")
-    public GlobalResponseDto withdraw(@RequestBody UserRequestDto userRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return userService.withdraw(userRequestDto, userDetails.getUser());
+    // 로그아웃
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+        return "redirect:/";
     }
 
 
