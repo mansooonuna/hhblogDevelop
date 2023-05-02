@@ -8,5 +8,5 @@ import com.example.hhblogdevelop.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
-    CommentLike findByCommentAndUser(Comment comment, Users user);
+    CommentLike findByCommentIdAndUser(Long commentId, Users user);
 }
