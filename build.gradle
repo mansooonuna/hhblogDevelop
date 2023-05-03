@@ -29,7 +29,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     implementation 'com.h2database:h2'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    //Redis
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '2.4.10'
 
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.8'
 
