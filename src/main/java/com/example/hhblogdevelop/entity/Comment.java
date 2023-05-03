@@ -40,6 +40,9 @@ public class Comment extends Timestamped {
     @ColumnDefault("0")
     private int like;
 
+    @JsonBackReference
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE)
+    private List<CommentLike> commentLikeList;
 
     public Comment(Users user, CommentRequestDto commentRequestDto, Post post) {
         this.post = post;

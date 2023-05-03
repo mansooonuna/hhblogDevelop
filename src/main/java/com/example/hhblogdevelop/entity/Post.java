@@ -40,9 +40,14 @@ public class Post extends Timestamped {
     @JsonBackReference
     private List<Comment> comments;
 
+
     @Column
     @ColumnDefault("0")
     private int post_like;
+
+    @JsonBackReference
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private List<PostLike> postLikeList;
 
     public Post(PostRequestDto postRequestDto, Users user) {
         // 입력값 Validation

@@ -79,13 +79,7 @@ public class WebSecurityConfig {
                 .antMatchers("/api/user/**").permitAll()
                 .antMatchers(PERMIT_URL_ARRAY).permitAll()
                 // 어떤 요청이든 '인증'
-                .anyRequest().authenticated()
-                // 로그아웃
-                .and()
-                .logout()
-                .logoutSuccessUrl("/")  // 로그아웃 성공시 리다이렉트 주소
-                .invalidateHttpSession(true)
-                .deleteCookies("ACCESS_KEY"); // 로그아웃 이후 세션 전체 삭제 여부
+                .anyRequest().authenticated();
 //                .antMatchers("api/post").hasRole("ADMIN")
 
 
