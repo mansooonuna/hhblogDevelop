@@ -13,6 +13,7 @@ import com.example.hhblogdevelop.jwt.JwtUtil;
 import com.example.hhblogdevelop.repository.RefreshTokenRepository;
 import com.example.hhblogdevelop.repository.UserRepository;
 import com.example.hhblogdevelop.security.UserDetailsImpl;
+import com.example.hhblogdevelop.utils.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
@@ -30,9 +32,10 @@ import static com.example.hhblogdevelop.exception.ErrorCode.*;
 public class UserService {
 
 
-    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
     // ADMIN_TOKEN
@@ -115,6 +118,20 @@ public class UserService {
         return new GlobalResponseDto("정상적으로 로그인 되었습니다.", HttpStatus.OK.value());
     }
 
+    @Transactional
+    public GlobalResponseDto logout(Users user, HttpServletRequest request) {
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUser(user);
+
+        String accessToken = request.getHeader("ACCESS_KEY").substring(7);
+        if (refreshToken.isPresent()) {
+            Long tokenTime = jwtUtil.getExpirationTime(accessToken);
+            redisUtil.setBlackList(accessToken, "access_token", tokenTime);
+//             refreshTokenRepository.deleteByUsername(user.getUsername());
+            userRepository.deleteRefreshTokenByUsername(user.getUsername());
+            return new GlobalResponseDto("정상적으로 로그아웃 되었습니다.", HttpStatus.OK.value());
+        }
+        throw new CustomException(USER_NOT_FOUND);
+    }
 
     private void setHeader(HttpServletResponse response, TokenDto tokenDto) {
         response.addHeader(JwtUtil.ACCESS_KEY, tokenDto.getAccessToken());

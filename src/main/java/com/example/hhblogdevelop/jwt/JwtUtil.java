@@ -6,6 +6,7 @@ import com.example.hhblogdevelop.entity.RefreshToken;
 import com.example.hhblogdevelop.entity.UserRoleEnum;
 import com.example.hhblogdevelop.repository.RefreshTokenRepository;
 import com.example.hhblogdevelop.security.UserDetailsServiceImpl;
+import com.example.hhblogdevelop.utils.RedisUtil;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class JwtUtil {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RedisUtil redisUtil;
 
     public static final String AUTHORIZATION_KEY = "auth";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -76,6 +78,7 @@ public class JwtUtil {
 
     // 토큰 검증
     public boolean validateToken(String token) {
+        if (redisUtil.hasKeyBlackList(token)) return false;
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
@@ -127,5 +130,19 @@ public class JwtUtil {
     // 엑세스 토큰 헤더 설정
     public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
         response.setHeader(ACCESS_KEY, accessToken);
+    }
+
+    // 토큰에서 만료 시간 정보를 추출합니다.
+    public long getExpirationTime(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+
+        // 현재 시간과 만료 시간의 차이를 계산하여 반환합니다.
+        Date expirationDate = claims.getExpiration();
+        Date now = new Date();
+        long diff = expirationDate.getTime() - now.getTime();
+        return diff / 1000; // 초 단위로 반환합니다.
     }
 }

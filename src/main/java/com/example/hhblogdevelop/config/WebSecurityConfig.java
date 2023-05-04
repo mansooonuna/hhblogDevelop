@@ -91,16 +91,7 @@ public class WebSecurityConfig {
                                          AuthenticationException authException) throws IOException, ServletException {
                         toResponseEntity(USER_NOT_FOUND);
                     }
-                })
-                .accessDeniedHandler(new AccessDeniedHandler() {
-
-                    @Override
-                    public void handle(HttpServletRequest request, HttpServletResponse response,
-                                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
-                        toResponseEntity(INVALID_AUTH_TOKEN);
-                    }
-                })
-        ;
+                });
 
         // JWT 인증/인가를 사용하기 위한 설정
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

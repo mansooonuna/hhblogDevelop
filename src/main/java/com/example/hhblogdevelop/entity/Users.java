@@ -44,11 +44,11 @@ public class Users {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<CommentLike> commentLikeList;
 
-
     @JsonIgnore
     @JsonManagedReference
     @OneToOne(cascade = CascadeType.REMOVE)
     private RefreshToken refreshToken;
+
 
     public Users(String username, String password, UserRoleEnum role) {
         this.username = username;
@@ -58,5 +58,9 @@ public class Users {
 
     public void update(RefreshToken refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public void updateNull() {
+        this.refreshToken = null;
     }
 }
